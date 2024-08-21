@@ -23,11 +23,9 @@ TWEAK_NAME = MessengerBackground
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -fvisibility=hidden
 
-$(TWEAK_NAME)_CCFLAGS = -std=c++11 -fno-rtti -fno-exceptions -DNDEBUG -fno-objc-arc
+$(TWEAK_NAME)_CCFLAGS = -std=c++11 -fno-rtti -fno-exceptions -DNDEBUG -fno-objc-arc -O2 -DkNO_SUBSTRATE
 
 $(TWEAK_NAME)_FILES = Tweak.xm $(wildcard SettingsView/*.mm) $(wildcard ImagePickerManager/*.mm) $(wildcard SharedManager/*.mm) $(wildcard Languages/*.mm)
-
-$(TWEAK_NAME)_CFLAGS = -fobjc-arc
 
 $(TWEAK_NAME)_FRAMEWORKS = UIKit
 
