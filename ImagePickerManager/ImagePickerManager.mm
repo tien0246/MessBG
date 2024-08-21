@@ -35,6 +35,14 @@
         }
         NSString *filePath = [imageDirectory stringByAppendingPathComponent:fileName];
         [imageData writeToFile:filePath options:NSDataWritingAtomic error:nil];
+
+        // enabel image
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSString *key = [[SharedManager sharedInstance] hasImage] ? [SharedManager sharedInstance].tempName : @"SwitchStates";
+        NSMutableDictionary *switchStates = [[defaults dictionaryForKey:key] mutableCopy] ?: [NSMutableDictionary dictionary];
+        [switchStates setObject:@YES forKey:@"ToggleBackground"];
+        [defaults setObject:switchStates forKey:key];
+        [defaults synchronize];
     }
 }
 

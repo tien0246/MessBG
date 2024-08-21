@@ -38,19 +38,39 @@ NSString *headerName;
         NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
         NSString *key = headerName && [[NSFileManager defaultManager] fileExistsAtPath:[documentsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"image/%@", headerName]]] ? headerName : @"SwitchStates";
         NSDictionary *switchStates = [defaults dictionaryForKey:key];
-		BOOL isBackgroundEnabled = [[switchStates objectForKey:@"Toggle Background"] boolValue];
+		BOOL isBackgroundEnabled = [[switchStates objectForKey:@"ToggleBackground"] boolValue];
 		if (isBackgroundEnabled) {
             NSString *imagePath = [documentsPath stringByAppendingPathComponent: (headerName && [[NSFileManager defaultManager] fileExistsAtPath:[documentsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"image/%@", headerName]]]) ? [NSString stringWithFormat:@"image/%@", headerName] : @"image/0"];
+            CGFloat alpha = [[switchStates objectForKey:@"BackgroundOpacity"] floatValue] * 25;
+            BOOL isBlacked = [[switchStates objectForKey:@"BlackOverlay"] boolValue];
+            UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+            CGRect screenBounds = [UIScreen mainScreen].bounds;
 
+            CIImage *ciImage = [[CIImage alloc] initWithImage:image];
 
-			UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
-			CGRect screenBounds = [UIScreen mainScreen].bounds;
-			
-			UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-			imageView.contentMode = UIViewContentModeScaleAspectFill;
-			imageView.clipsToBounds = YES;
-			imageView.frame = screenBounds;
-			[self addSubview:imageView];
+            CIFilter *blurFilter = [CIFilter filterWithName:@"CIGaussianBlur"];
+            [blurFilter setValue:ciImage forKey:kCIInputImageKey];
+            [blurFilter setValue:@(alpha) forKey:kCIInputRadiusKey];
+
+            CIImage *outputCIImage = [blurFilter outputImage];
+            CIContext *context = [CIContext contextWithOptions:nil];
+            CGImageRef cgImage = [context createCGImage:outputCIImage fromRect:[ciImage extent]];
+
+            UIImage *blurredImage = [UIImage imageWithCGImage:cgImage];
+            CGImageRelease(cgImage);
+
+            UIImageView *imageView = [[UIImageView alloc] initWithImage:blurredImage];
+            imageView.contentMode = UIViewContentModeScaleAspectFill;
+            imageView.clipsToBounds = YES;
+            imageView.frame = screenBounds;
+            [self addSubview:imageView];
+
+            if (isBlacked) {
+                UIView *blackOverlay = [[UIView alloc] initWithFrame:screenBounds];
+                blackOverlay.backgroundColor = [UIColor secondarySystemBackgroundColor];
+                blackOverlay.alpha = 0.3;
+                [imageView addSubview:blackOverlay];
+            }
 		}
 		%orig;
 	}
@@ -76,26 +96,27 @@ NSString *headerName;
                                                                                 message:nil
                                                                         preferredStyle:UIAlertControllerStyleActionSheet];
 
-            UIAlertAction *customBackgroundAction = [UIAlertAction actionWithTitle:@"Settings"
+            UIAlertAction *customBackgroundAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Settings"]
                                                                             style:UIAlertActionStyleDefault
                                                                         handler:^(UIAlertAction *action) {
                 if (keyWindow) {
                     UIViewController *rootViewController = keyWindow.rootViewController;
                     SettingsView *settingsView = [[SettingsView alloc] initWithFrame:rootViewController.view.bounds
-                                                                    presentingViewController:rootViewController];
+                                                                    presentingViewController:rootViewController
+                                                                    isGlobal:YES];
                     UIViewController *settingsViewController = [[UIViewController alloc] init];
                     settingsViewController.view = settingsView;
                     [rootViewController presentViewController:settingsViewController animated:YES completion:nil];
                 }
             }];
 
-            UIAlertAction *pickImageAction = [UIAlertAction actionWithTitle:@"Change Image"
+            UIAlertAction *pickImageAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Change Image"]
                                                                     style:UIAlertActionStyleDefault
                                                                     handler:^(UIAlertAction *action) {
                 [[ImagePickerManager sharedManager] presentImagePickerFromViewController:keyWindow.rootViewController];
             }];
 
-            UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"Delete Image"
+            UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Delete Image"]
                                                                 style:UIAlertActionStyleDestructive
                                                                 handler:^(UIAlertAction *action) {
                 NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
@@ -107,7 +128,7 @@ NSString *headerName;
                 [defaults synchronize];
             }];
 
-            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Cancel"]
                                                                 style:UIAlertActionStyleCancel
                                                                 handler:nil];
             [actionSheet addAction:customBackgroundAction];
@@ -138,26 +159,27 @@ NSString *headerName;
                                                                             message:nil
                                                                     preferredStyle:UIAlertControllerStyleActionSheet];
 
-        UIAlertAction *customBackgroundAction = [UIAlertAction actionWithTitle:@"Settings"
+        UIAlertAction *customBackgroundAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Settings"]
                                                                         style:UIAlertActionStyleDefault
                                                                     handler:^(UIAlertAction *action) {
             if (keyWindow) {
                 UIViewController *rootViewController = keyWindow.rootViewController;
                 SettingsView *settingsView = [[SettingsView alloc] initWithFrame:rootViewController.view.bounds
-                                                                presentingViewController:rootViewController];
+                                                                presentingViewController:rootViewController
+                                                                isGlobal:NO];
                 UIViewController *settingsViewController = [[UIViewController alloc] init];
                 settingsViewController.view = settingsView;
                 [rootViewController presentViewController:settingsViewController animated:YES completion:nil];
             }
         }];
 
-        UIAlertAction *pickImageAction = [UIAlertAction actionWithTitle:@"Change Image"
+        UIAlertAction *pickImageAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Change Image"]
                                                                 style:UIAlertActionStyleDefault
                                                                 handler:^(UIAlertAction *action) {
             [[ImagePickerManager sharedManager] presentImagePickerFromViewController:keyWindow.rootViewController];
         }];
 
-        UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"Delete Image"
+        UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Delete Image"]
                                                             style:UIAlertActionStyleDestructive
                                                             handler:^(UIAlertAction *action) {
             NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
@@ -169,7 +191,7 @@ NSString *headerName;
             [defaults synchronize];
         }];
 
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:[[Languages sharedInstance] localizedStringForKey :@"Cancel"]
                                                             style:UIAlertActionStyleCancel
                                                             handler:nil];
 
@@ -249,8 +271,7 @@ NSString *headerName;
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSString *key = headerName && [[NSFileManager defaultManager] fileExistsAtPath:[documentsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"image/%@", headerName]]] ? headerName : @"SwitchStates";
             NSDictionary *switchStates = [defaults dictionaryForKey:key];
-            CGFloat alpha = [[switchStates objectForKey:@"Header & Footer Opacity"] floatValue];
-            NSLog(@"[MessBG] Name: %@, Alpha: %f", headerName, alpha);
+            CGFloat alpha = [[switchStates objectForKey:@"HeaderFooterOpacity"] floatValue];
             if (headerName) {
                 self.alpha = alpha;
             }
@@ -267,7 +288,7 @@ NSString *headerName;
             NSString *key = headerName && [[NSFileManager defaultManager] fileExistsAtPath:[documentsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"image/%@", headerName]]] ? headerName : @"SwitchStates";
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSDictionary *switchStates = [defaults dictionaryForKey:key];
-            CGFloat alpha = [[switchStates objectForKey:@"Header & Footer Opacity"] floatValue];
+            CGFloat alpha = [[switchStates objectForKey:@"HeaderFooterOpacity"] floatValue];
             if (headerName) {
                 self.alpha = alpha;
             }
@@ -275,6 +296,154 @@ NSString *headerName;
         return self;
     }
 %end
+
+
+/* ~~~~~~~~ Custom Background Home ~~~~~~~~ */
+%hook UITableViewCellContentView
+    - (void)setBackgroundColor:(UIColor *)arg1 {
+        arg1 = [UIColor clearColor];
+        %orig;
+    }
+%end
+
+%hook UICollectionView
+    - (void)setBackgroundColor:(UIColor *)arg1 {
+        if (self.superview &&
+        ([self.superview isKindOfClass:NSClassFromString(@"MDSSegmentedControl")] ||
+        [self.superview isKindOfClass:NSClassFromString(@"UITableViewCellContentView")])) {
+            arg1 = [UIColor clearColor];
+        }
+        %orig;
+    }
+%end
+
+%hook UIView
+    - (void)setBackgroundColor:(UIColor *)arg1 {
+        if (self.superview &&
+        [self.superview isKindOfClass:NSClassFromString(@"UITableView")]) {
+            arg1 = [UIColor clearColor];
+        }
+        %orig;
+    }
+%end
+
+%hook _UIVisualEffectContentView
+    - (void)setBackgroundColor:(UIColor *)arg1 {
+        if (self.superview &&
+        [self.superview isKindOfClass:NSClassFromString(@"UIVisualEffectView")] &&
+        self.subviews.count == 0 &&
+        self.frame.origin.x == 0 &&
+        self.frame.origin.y == 0 &&
+        self.frame.size.width == [UIScreen mainScreen].bounds.size.width) {
+            arg1 = [UIColor clearColor];
+        }
+        %orig;
+    }
+%end
+
+%hook UITableView
+    BOOL isAddBackGround = NO;
+    - (void)addSubview:(UIView *)arg1 {
+        %orig;
+
+        NSDictionary *switchStates = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"SwitchStates"];
+        BOOL isBackgroundEnabled = [[switchStates objectForKey:@"ToggleBackgroundMessenger"] boolValue];
+        BOOL isOnlyHome = [[switchStates objectForKey:@"ToggleOnlyMainBackground"] boolValue];
+        if (!isAddBackGround && isBackgroundEnabled) {
+            if (isOnlyHome) isAddBackGround = YES;
+            NSString *imagePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"image/0"];
+            CGFloat alpha = [[switchStates objectForKey:@"BackgroundOpacity"] floatValue] * 25;
+            BOOL isBlacked = [[switchStates objectForKey:@"BlackOverlay"] boolValue];
+
+            UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+            CIImage *ciImage = [[CIImage alloc] initWithImage:image];
+            CIFilter *blurFilter = [CIFilter filterWithName:@"CIGaussianBlur"];
+            [blurFilter setValue:ciImage forKey:kCIInputImageKey];
+            [blurFilter setValue:@(alpha) forKey:kCIInputRadiusKey];
+
+            CIImage *outputCIImage = [blurFilter outputImage];
+            CIContext *context = [CIContext contextWithOptions:nil];
+            CGImageRef cgImage = [context createCGImage:outputCIImage fromRect:[ciImage extent]];
+
+            UIImage *blurredImage = [UIImage imageWithCGImage:cgImage];
+            CGImageRelease(cgImage);
+
+            UIImageView *imageView = [[UIImageView alloc] initWithImage:blurredImage];
+            imageView.contentMode = UIViewContentModeScaleAspectFill;
+            imageView.clipsToBounds = YES;
+            imageView.frame = [UIScreen mainScreen].bounds;
+            self.backgroundView = imageView;
+            self.backgroundColor = [UIColor clearColor];
+
+            if (isBlacked) {
+                UIView *blackOverlay = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+                blackOverlay.backgroundColor = [UIColor secondarySystemBackgroundColor];
+                blackOverlay.alpha = 0.3;
+                [imageView addSubview:blackOverlay];
+            }
+        }
+    }
+%end
+
+/* ~~~~~~~~ Hidden feature ~~~~~~~~ */
+%hook NSNotificationCenter
+    - (void)postNotificationName:(NSNotificationName)aName object:(id)anObject userInfo:(NSDictionary *)aUserInfo {
+        if ([aName isEqualToString:@"UIApplicationUserDidTakeScreenshotNotification"]) {
+            return;
+        }
+        %orig;
+    }
+%end
+
+%hook UIScreen
+    - (BOOL)isCaptured {
+        return NO;
+    }
+%end
+
+
+/* ~~~~~~~~ Fix border radius black but it added more bugs ~_~ nah, skip it ~~~~~~~~ */
+// %hook MDSTheme
+//     int count = 0;
+//     - (id)colorForMDSColor:(long long)arg1 forTraitCollection:(id)arg2 {
+//         if (arg1 == 10051 && arg2 != nil && count > 50) {
+//             NSLog(@"MDSTheme: %@", arg2);
+//             arg1 = 10000;
+//         } else if (arg1 == 10051 && arg2 != nil) {
+//             count++;
+//         }
+//         return %orig;
+//     }
+// %end
+// %hook LSView
+// - (void)layoutSubviews {
+//     %orig;
+//     if (self.superview &&
+//     [self.superview isKindOfClass:NSClassFromString(@"MSGMessageBodyView")] &&
+//     self.subviews.count == 2 &&
+//     self.subviews[0].hidden == NO &&
+//     self.subviews[0].clipsToBounds == NO) {
+//         UIImageView *subview2 = self.subviews[1];
+//         UIImage *image = subview2.image;
+//         CGImageRef imageRef = [image CGImage];
+//         CGContextRef context = CGBitmapContextCreate(NULL, 1, 1, 8, 0, CGColorSpaceCreateDeviceRGB(), kCGImageAlphaPremultipliedLast);
+//         CGContextDrawImage(context, CGRectMake(0, 0, 1, 1), imageRef);
+//         const UInt8 *data = (const UInt8 *)CGBitmapContextGetData(context);
+//         if (data[3] == 255) return;
+
+//         UIView *subview1 = self.subviews[0];
+//         UIBezierPath *roundedPath = [UIBezierPath bezierPathWithRoundedRect:subview1.bounds
+//                                                          byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight | UIRectCornerBottomLeft | UIRectCornerBottomRight)
+//                                                                cornerRadii:CGSizeMake(12.0, 12.0)];
+//         CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
+//         maskLayer.frame = subview1.bounds;
+//         maskLayer.path = roundedPath.CGPath;
+//         subview1.layer.mask = maskLayer;
+//     }
+// }
+// %end
+
+
 
 %ctor {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

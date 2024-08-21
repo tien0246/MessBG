@@ -4,6 +4,7 @@
 #import "SettingsView/SettingsView.h"
 #import "ImagePickerManager/ImagePickerManager.h"
 #import "SharedManager/SharedManager.h"
+#import "Languages/Languages.h"
 
 @interface MDSLabel: UILabel
 @end
@@ -13,6 +14,16 @@
 
 @interface MDSBlurView: UIVisualEffectView
 @end
+
+@interface UITableViewCellContentView: UIView
+@end
+
+@interface _UIVisualEffectContentView: UIView
+@end
+
+// @interface LSView: UIView
+// @end
+
 
 @interface Tweak : NSObject
     + (instancetype)sharedInstance;
