@@ -53,9 +53,9 @@
     UIImage *selectedImage = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
     NSString *imageName = [SharedManager sharedInstance].tempName;
     if (imageName) {
-        [self saveImage:selectedImage withName:imageName];
+        [self saveImage:selectedImage withName:[imageName stringByAppendingString:[SharedManager sharedInstance].isLightMode ? @"0" : @"1"]];
     } else {
-        [self saveImage:selectedImage withName:@"0"];
+        [self saveImage:selectedImage withName:[SharedManager sharedInstance].isLightMode ? @"0" : @"1"];
     }
     [picker dismissViewControllerAnimated:YES completion:nil];
 }

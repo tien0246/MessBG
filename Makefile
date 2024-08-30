@@ -19,7 +19,7 @@ endif
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = MessengerBackground
+TWEAK_NAME = MessBG
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -fvisibility=hidden
 

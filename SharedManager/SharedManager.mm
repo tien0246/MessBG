@@ -14,8 +14,9 @@
 - (BOOL)hasImage {
     NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
     NSString *imageDirectory = [documentsPath stringByAppendingPathComponent:@"image"];
-    NSString *filePath = [imageDirectory stringByAppendingPathComponent:self.tempName];
-    return self.tempName && [[NSFileManager defaultManager] fileExistsAtPath:filePath];
+    NSString *imagePath0 = [imageDirectory stringByAppendingPathComponent:[_tempName stringByAppendingString:@"0"]];
+    NSString *imagePath1 = [imageDirectory stringByAppendingPathComponent:[_tempName stringByAppendingString:@"1"]];
+    return _tempName && ([[NSFileManager defaultManager] fileExistsAtPath:imagePath0] || [[NSFileManager defaultManager] fileExistsAtPath:imagePath1]);
 }
 
 @end

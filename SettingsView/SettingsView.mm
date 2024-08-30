@@ -45,9 +45,9 @@
 
             [self addSwitch:_bodyView frame:CGRectMake(10, 320, frame.size.width, 40) switchKey:@"ToggleOnlyMainBackground" switchName:[_languages localizedStringForKey:@"Toggle only main background"] description:[_languages localizedStringForKey:@"Enable or disable the main background"]];
 
-            [self addCredits:_bodyView frame:CGRectMake(0, 370, frame.size.width, 40) credits:@"© 2024 MessBG by tien0246 with ❤️\nUwU"];
+            [self addCredits:_bodyView frame:CGRectMake(0, 370, frame.size.width, 60) credits:@"MessBG by tien0246 with ❤️\nUwU\nVersion: 1.2"];
         } else {
-            [self addCredits:_bodyView frame:CGRectMake(0, 270, frame.size.width, 40) credits:@"© 2024 MessBG by tien0246 with ❤️\nUwU"];
+            [self addCredits:_bodyView frame:CGRectMake(0, 270, frame.size.width, 60) credits:@"MessBG by tien0246 with ❤️\nUwU\nVersion: 1.2"];
         }
 
         [self addSubview:_bodyView];
